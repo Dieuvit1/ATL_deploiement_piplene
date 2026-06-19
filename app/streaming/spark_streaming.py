@@ -1,8 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json
 from pyspark.sql.types import StructType, StructField, StringType, DoubleType
+
 from app.processing.cleaning import clean_news, remove_duplicates
 from app.processing.enrichment import enrich_news
+
 
 schema = StructType([
     StructField("title", StringType(), True),
@@ -16,12 +18,10 @@ schema = StructType([
 ])
 
 
-
 def create_spark_session():
     return SparkSession.builder \
         .appName("NewsVerificationStreaming") \
         .getOrCreate()
-
 
 
 def main():
@@ -42,23 +42,29 @@ def main():
         .select("data.*")
 
     clean_df = (
-
         clean_news(news_df)
-        .filter(col("title").isNotNull()) 
+        .filter(col("title").isNotNull())
         .filter(col("url").isNotNull())
     )
+
     clean_df = remove_duplicates(clean_df)
     enriched_df = enrich_news(clean_df)
-        
-        
 
-    query = enriched_df.writeStream \
+    console_query = enriched_df.writeStream \
         .format("console") \
         .outputMode("append") \
         .option("truncate", "false") \
         .start()
 
-    query.awaitTermination()
+    bronze_query = enriched_df.writeStream \
+        .format("parquet") \
+        .outputMode("append") \
+        .option("path", "/opt/project/data/bronze/news") \
+        .option("checkpointLocation", "/opt/project/data/checkpoints/bronze_news") \
+        .start()
+
+    console_query.awaitTermination()
+    bronze_query.awaitTermination()
 
 
 if __name__ == "__main__":
