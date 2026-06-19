@@ -1,7 +1,7 @@
-from app.scrapers.gorafi import fetch_articles as fetch_gorafi_articles
-from app.scrapers.lemonde import fetch_articles as fetch_lemonde_articles
-from app.scrapers.afp_factcheck import fetch_articles as fetch_afp_factcheck_articles
-from app.producers.kafka_producer import send_articles_to_kafka
+from app.ingestion.scrapers.gorafi import fetch_articles as fetch_gorafi_articles
+from app.ingestion.scrapers.lemonde import fetch_articles as fetch_lemonde_articles
+from app.ingestion.scrapers.afp_factcheck import fetch_articles as fetch_afp_factcheck_articles
+from app.ingestion.producers.kafka_producer import send_articles_to_kafka
 
 
 def main():
